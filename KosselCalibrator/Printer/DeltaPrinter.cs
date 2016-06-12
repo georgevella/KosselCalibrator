@@ -140,18 +140,22 @@
         {
             var points = new[]
             {
-                new Vector(-100, -60, 0),
-                new Vector(-100, 60, 0),
-                new Vector(120, 0, 0),
+                new Tuple<string, Func<Vector, double>, Vector>("X", v => v.X, new Vector(-100, -60, 0)),
+                new Tuple<string, Func<Vector, double>, Vector>("Y", v => v.Y, new Vector(100, -60, 0)),
+                new Tuple<string, Func<Vector, double>, Vector>("Z", v => v.Z, new Vector(120, 0, 0)),
             };
 
             for (var i = 0; i < points.Length; i++)
             {
                 for (int j = 0; j < i; j++)
                 {
+                    MoveToHomingPosition();
+
                     while (true)
                     {
-                        var point = points[j];
+                        var point = points[j].Item3;
+                        var endpoint = points[j].Item1;
+                        var getEndstopAdjustment = points[j].Item2;
                         // x-pole 
                         MoveTo(point.X, point.Y, 10);
                         for (float z = 9; z > -5f; z -= 0.1f)
@@ -168,8 +172,10 @@
                         var position = GetCurrentPosition();
                         var bedDistance = position.Z - (Settings.ZProbeOffset);
 
-                        var newX = Info.EndstopAdjustment.X + bedDistance;
-                        if (Math.Abs(newX - Info.EndstopAdjustment.X) < 0.1)
+                        var currentEndstopAdjustment = getEndstopAdjustment(Info.EndstopAdjustment);
+
+                        var newEndstopAdjustment = currentEndstopAdjustment + bedDistance;
+                        if (Math.Abs(newEndstopAdjustment - currentEndstopAdjustment) < 0.1)
                         {
                             Console.WriteLine("Verify x-axis calibration? [Y]");
 
@@ -181,15 +187,19 @@
                                     break;
                             }
 
+                            Console.WriteLine("Continue? [Y]");
+                            Console.ReadKey();
                             break;
                         }
-                        Connection.WriteLine($"M666 X{newX:F2}");
+                        Connection.WriteLine($"M666 {endpoint.ToUpper()}{newEndstopAdjustment:F2}");
 
-                        Info.EndstopAdjustment = new Vector(newX, Info.EndstopAdjustment.Y, Info.EndstopAdjustment.Z);
+                        Info.EndstopAdjustment = new Vector(newEndstopAdjustment, Info.EndstopAdjustment.Y, Info.EndstopAdjustment.Z);
 
                         Thread.Sleep(100);
                         MoveToHomingPosition();
                     }
+
+                    SaveSettings();
                 }
             }
 

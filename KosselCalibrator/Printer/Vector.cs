@@ -11,7 +11,6 @@
 
         public Vector()
         {
-
         }
 
         public double X { get; }

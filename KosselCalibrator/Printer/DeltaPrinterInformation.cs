@@ -2,12 +2,6 @@
 {
     public class DeltaPrinterInformation
     {
-        public Vector HomeOffset { get; internal set; }
-
-        public Vector EndstopAdjustment { get; internal set; }
-
-        public DeltaSettings DeltaSettings { get; }
-
         public DeltaPrinterInformation()
         {
             HomeOffset = new Vector();
@@ -16,5 +10,11 @@
 
             DeltaSettings = new DeltaSettings();
         }
+
+        public Vector HomeOffset { get; internal set; }
+
+        public Vector EndstopAdjustment { get; internal set; }
+
+        public DeltaSettings DeltaSettings { get; internal set; }
     }
 }

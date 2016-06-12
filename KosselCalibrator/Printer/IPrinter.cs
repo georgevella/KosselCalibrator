@@ -1,7 +1,9 @@
 ﻿namespace KosselCalibrator.Printer
 {
-    public interface IPrinter
+    using System;
+
+    public interface IPrinter : IDisposable
     {
-        DeltaPrinterInformation DeltaPrinterInformation { get; }
+        DeltaPrinterInformation Info { get; }
     }
 }

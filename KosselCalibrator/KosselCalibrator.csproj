@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KosselCalibrator</RootNamespace>
     <AssemblyName>KosselCalibrator</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,6 +50,7 @@
     <Compile Include="GCode\GCodeCommand.cs" />
     <Compile Include="GCode\GCodeType.cs" />
     <Compile Include="GCode\MCode.cs" />
+    <Compile Include="Printer\DeltaPrinterSettings.cs" />
     <Compile Include="Printer\DeltaSettings.cs" />
     <Compile Include="GCode\GCodeParser.cs" />
     <Compile Include="Connection\IConnection.cs" />

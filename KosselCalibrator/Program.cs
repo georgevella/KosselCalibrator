@@ -1,15 +1,26 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace KosselCalibrator
+﻿namespace KosselCalibrator
 {
-    class Program
+    using System;
+
+    using KosselCalibrator.Connection;
+    using KosselCalibrator.Printer;
+
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            using (var printer = new DeltaPrinter())
+            {
+                printer.Settings.ZProbeOffset = 1.2;
+
+                printer.Connect("COM3", BaudRate.Rate250000);
+                printer.MoveToHomingPosition();
+                //printer.MoveTo(0, 0, 10);
+
+                printer.SetupMechanicalOffsets();
+            }
+
+            Console.ReadKey();
         }
     }
 }

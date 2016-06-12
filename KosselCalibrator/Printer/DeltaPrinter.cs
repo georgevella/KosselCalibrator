@@ -42,7 +42,12 @@
 
         public void MoveTo(double x, double y, double z, double feedRate = 5000)
         {
-            Connection.WriteLine($"G1 X{x:F2} Y{y:F2} Z{z:F2} F{feedRate:F2}");            
+            Connection.WriteLine($"G1 X{x:F2} Y{y:F2} Z{z:F2} F{feedRate:F2}");
+            Connection.WaitForText("ok");
+        }
+        public void MoveTo(Vector vector, double feedRate = 5000)
+        {
+            Connection.WriteLine($"G1 X{vector.X:F2} Y{vector.Y:F2} Z{vector.Z:F2} F{feedRate:F2}");
             Connection.WaitForText("ok");
         }
 
@@ -69,7 +74,7 @@
                 arguments[argName] = value;
             }
 
-            return new Vector(arguments['X'],arguments['Y'],arguments['Z']);
+            return new Vector(arguments['X'], arguments['Y'], arguments['Z']);
         }
 
         public void GetPrinterInformation()
@@ -133,47 +138,61 @@
 
         public void SetupMechanicalOffsets()
         {
-
-            while (true)
+            var points = new[]
             {
-                // x-pole 
-                MoveTo(-100, -60, 10);
-                for (float z = 9; z > -5f; z -= 0.1f)
+                new Vector(-100, -60, 0),
+                new Vector(-100, 60, 0),
+                new Vector(120, 0, 0),
+            };
+
+            for (var i = 0; i < points.Length; i++)
+            {
+                for (int j = 0; j < i; j++)
                 {
-                    var state = new Dictionary<string, bool>();
-                    ReadEndpointReport(state);
-
-                    if (state["z_min"]) break;
-
-                    MoveTo(-100, -60, z, 1000);
-                    Thread.Sleep(50);
-                }
-
-                var position = GetCurrentPosition();
-                var bedDistance = position.Z - (Settings.ZProbeOffset);
-
-                var newX = Info.EndstopAdjustment.X + bedDistance;
-                if (Math.Abs(newX - Info.EndstopAdjustment.X) < 0.1)
-                {
-                    Console.WriteLine("Verify x-axis calibration? [Y]");
-
-                    switch (Console.ReadKey().Key)
+                    while (true)
                     {
-                        case ConsoleKey.Enter:
-                        case ConsoleKey.Y:
-                            MoveTo(-100, -60, 0, 1000);
+                        var point = points[j];
+                        // x-pole 
+                        MoveTo(point.X, point.Y, 10);
+                        for (float z = 9; z > -5f; z -= 0.1f)
+                        {
+                            var state = new Dictionary<string, bool>();
+                            ReadEndpointReport(state);
+
+                            if (state["z_min"]) break;
+
+                            MoveTo(point.X, point.Y, z, 1000);
+                            Thread.Sleep(50);
+                        }
+
+                        var position = GetCurrentPosition();
+                        var bedDistance = position.Z - (Settings.ZProbeOffset);
+
+                        var newX = Info.EndstopAdjustment.X + bedDistance;
+                        if (Math.Abs(newX - Info.EndstopAdjustment.X) < 0.1)
+                        {
+                            Console.WriteLine("Verify x-axis calibration? [Y]");
+
+                            switch (Console.ReadKey().Key)
+                            {
+                                case ConsoleKey.Enter:
+                                case ConsoleKey.Y:
+                                    MoveTo(point.X, point.Y, 0, 1000);
+                                    break;
+                            }
+
                             break;
+                        }
+                        Connection.WriteLine($"M666 X{newX:F2}");
+
+                        Info.EndstopAdjustment = new Vector(newX, Info.EndstopAdjustment.Y, Info.EndstopAdjustment.Z);
+
+                        Thread.Sleep(100);
+                        MoveToHomingPosition();
                     }
-
-                    break;
                 }
-                Connection.WriteLine($"M666 X{newX:F2}");
-
-                Info.EndstopAdjustment = new Vector(newX, Info.EndstopAdjustment.Y, Info.EndstopAdjustment.Z);
-
-                Thread.Sleep(100);
-                MoveToHomingPosition();
             }
+
         }
 
         public void SaveSettings()
